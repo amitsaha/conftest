@@ -20,14 +20,14 @@ func (yp *Parser) separateSubDocuments(data []byte) [][]byte {
 }
 
 func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{}) error {
-	var documentStore []interface{}
-	for _, subDocument := range subDocuments {
+	var documentStore = make(map[string]interface{})
+	for idx, subDocument := range subDocuments {
 		var documentObject interface{}
 		err := yaml.Unmarshal(subDocument, &documentObject)
 		if err != nil {
 			return fmt.Errorf("Unable to parse YAML: %s", err)
 		}
-		documentStore = append(documentStore, documentObject)
+		documentStore[fmt.Sprintf("doc_%d", idx)] = documentObject
 	}
 
 	yamlConfigBytes, err := yaml.Marshal(documentStore)
@@ -44,6 +44,7 @@ func (yp *Parser) unmarshalMultipleDocuments(subDocuments [][]byte, v interface{
 func (yp *Parser) Unmarshal(p []byte, v interface{}) error {
 	subDocuments := yp.separateSubDocuments(p)
 	if len(subDocuments) > 1 {
+		fmt.Printf("Unmarshalling yaml file with subDocuments \n")
 		return yp.unmarshalMultipleDocuments(subDocuments, v)
 	}
 

@@ -5,14 +5,15 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/instrumenta/conftest/pkg/parser/cue"
 	"github.com/instrumenta/conftest/pkg/parser/docker"
+	"github.com/instrumenta/conftest/pkg/parser/hcl2"
 	"github.com/instrumenta/conftest/pkg/parser/ini"
 	"github.com/instrumenta/conftest/pkg/parser/terraform"
 	"github.com/instrumenta/conftest/pkg/parser/toml"
 	"github.com/instrumenta/conftest/pkg/parser/yaml"
-	"github.com/instrumenta/conftest/pkg/parser/hcl2"
 )
 
 // ValidInputs returns string array in order to passing valid input types to viper
@@ -66,7 +67,17 @@ func (s *ConfigManager) BulkUnmarshal(configList []ConfigDoc) (map[string]interf
 		if err != nil {
 			return nil, fmt.Errorf("Should not have any errors on unmarshalling: %v", err)
 		}
-		allContents[filepath] = singleContent
+		singleContentMap, ok := singleContent.(map[string]interface{})
+		if !ok || singleContentMap == nil {
+			allContents[filepath] = singleContent
+		} else {
+			for k, v := range singleContentMap {
+				if strings.HasPrefix(k, "doc_") {
+					allContents[k] = v
+				}
+			}
+			allContents[filepath] = singleContent
+		}
 	}
 	return allContents, nil
 }

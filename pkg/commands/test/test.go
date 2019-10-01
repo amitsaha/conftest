@@ -89,6 +89,10 @@ func NewTestCommand(osExit func(int), getOutputManager func() OutputManager) *co
 				log.G(ctx).Errorf("Unable to BulkUnmarshal your config files: %v", err)
 				osExit(1)
 			}
+			for k, v := range configurations {
+				fmt.Printf("Top-level Key %#v\n", k)
+				fmt.Printf("Values: %#v\n", v)
+			}
 
 			var res CheckResult
 			if viper.GetBool(CombineConfigFlagName) {
@@ -257,6 +261,7 @@ func processData(ctx context.Context, input interface{}, compiler *ast.Compiler)
 }
 
 func runQuery(ctx context.Context, query string, input interface{}, compiler *ast.Compiler) ([]error, error) {
+	fmt.Printf("Running query with %#v\n", input)
 	hasResults := func(expression interface{}) bool {
 		if v, ok := expression.([]interface{}); ok {
 			return len(v) > 0
